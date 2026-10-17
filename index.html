@@ -7,6 +7,10 @@
 <meta name="description" content="Ekagrata — Spatial focus & ambient audio with smart recommendations.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Ekagrata — Your Work, Your Sound.</title>
+
+<!-- Google Identity Services Script -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <style>
 :root{
   --bg:#020308; --ink:#ffffff; --muted:#a0aec0; --line:rgba(255,255,255,.1);
@@ -69,6 +73,12 @@ main{display:grid;gap:20px;padding:20px 0 0;transform-style:preserve-3d;}
 .brand-text p{font-size:.7rem;color:var(--muted);letter-spacing:.5px;}
 .topbar-actions{display:flex;align-items:center;gap:10px;}
 
+/* User Profile UI */
+.user-profile { display:flex; align-items:center; gap:8px; cursor:pointer; }
+.user-avatar { width:36px; height:36px; border-radius:50%; border:2px solid var(--cyan); object-fit:cover; background:#333; }
+.user-name { font-size:.8rem; font-weight:700; display:none; }
+@media(min-width:640px){ .user-name { display:block; } }
+
 .status-pill { font-size:.72rem;font-weight:700;padding:8px 14px;border-radius:99px; background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15); box-shadow:inset 0 1px 0 rgba(255,255,255,.2);color:var(--muted);transition:.3s; }
 .status-pill.live { color:#02101c;background:linear-gradient(135deg,var(--cyan),#4ade80);border-color:transparent;box-shadow:0 0 20px rgba(46,230,214,.4); }
 .status-pill.paused { color:#ffd08a;border-color:rgba(255,176,32,.4);box-shadow:0 0 20px rgba(255,176,32,.2); }
@@ -122,9 +132,7 @@ main{display:grid;gap:20px;padding:20px 0 0;transform-style:preserve-3d;}
 .ac-desc { font-size:.7rem;color:var(--muted);line-height:1.3; }
 
 /* Smart Rec Inline */
-.smart-inline {
-  border-top: 1px solid rgba(255,255,255,.08); padding-top: 20px;
-}
+.smart-inline { border-top: 1px solid rgba(255,255,255,.08); padding-top: 20px; }
 .smart-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
 .smart-head h3 { font-size:.9rem; font-weight:800; color:#c9d0f2; }
 .switch-row { display:flex;align-items:center;gap:10px;font-size:.8rem;font-weight:600;cursor:pointer;padding:6px 0; }
@@ -166,10 +174,7 @@ input:focus, select:focus, textarea:focus { border-color:rgba(46,230,214,.6);box
   background: rgba(176,107,255,.25); border: 1px solid rgba(176,107,255,.5); color: #e9d5ff;
   animation: binauralPulse 2s ease-in-out infinite;
 }
-@keyframes binauralPulse {
-  0%, 100% { box-shadow: 0 0 5px rgba(176,107,255,.3); }
-  50% { box-shadow: 0 0 15px rgba(176,107,255,.7); }
-}
+@keyframes binauralPulse { 0%, 100% { box-shadow: 0 0 5px rgba(176,107,255,.3); } 50% { box-shadow: 0 0 15px rgba(176,107,255,.7); } }
 
 .layer-label { font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800;margin:14px 0 8px; display:flex; align-items:center; gap:8px;}
 .layer-label::after { content:''; flex:1; height:1px; background:linear-gradient(90deg, rgba(255,255,255,.1), transparent); }
@@ -197,6 +202,17 @@ details.binaural[open] summary::before{content:'▾ ';}
 .freq-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px; }
 .freq-grid label { font-size:.65rem;color:var(--muted);display:flex;flex-direction:column;gap:4px;font-weight:600; }
 input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:8px 10px;font-size:.8rem;font-family:inherit;width:100%; }
+
+/* Video Panel */
+.video-container {
+  position: relative; width: 100%; padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  background: #000; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); margin-bottom: 12px;
+}
+.video-container iframe {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
+}
+.video-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.video-input-row input { flex: 1; }
 
 /* Timer */
 .ring-wrap { position:relative;width:190px;height:190px;margin:10px auto 20px; }
@@ -301,8 +317,15 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
       <p>Spatial Focus Environment</p>
     </div>
   </div>
+  
   <div class="topbar-actions">
     <div id="sessionStatus" class="status-pill" role="status" aria-live="polite">Idle</div>
+    
+    <!-- User Profile / Google Login Container -->
+    <div id="userContainer" style="display:flex; align-items:center;">
+      <!-- Google Login Button will be injected here -->
+    </div>
+
     <button id="settingsBtn" class="icon-btn" aria-label="Settings" title="Settings">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.63.68 1.09 1.32 1.09H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     </button>
@@ -370,6 +393,27 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- Video / YouTube Panel -->
+  <section class="panel span-2">
+    <div class="panel-head">
+      <h2>Focus Video (Distraction-Free)</h2>
+      <span class="badge" style="background:rgba(255,255,255,.1);color:#fff;">Ad-Free</span>
+    </div>
+    
+    <div class="video-input-row">
+      <input type="text" id="ytUrlInput" placeholder="Paste YouTube link or Video ID here...">
+      <button id="loadVideoBtn" class="btn btn-primary btn-sm">Load</button>
+    </div>
+    
+    <div class="video-container" id="videoContainer" style="display:none;">
+      <!-- iframe injected here -->
+    </div>
+    
+    <p class="note" style="margin-top:10px;">
+      <strong>Tip:</strong> For true background audio, right-click the video and select <strong>"Picture in Picture"</strong>. You can then use the timer and audio workspace below. 
+    </p>
   </section>
 
   <section class="panel">
@@ -491,7 +535,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
 <div class="modal" id="settingsModal">
   <div class="modal-card">
     <div class="modal-head"><h2>Settings</h2><button class="close-x" id="settingsClose">&times;</button></div>
-    <label class="field">Your Name<input type="text" id="setName" maxlength="24"></label>
+    <label class="field">Your Name (If not logged in)<input type="text" id="setName" maxlength="24"></label>
     <label class="field">Default Activity<select id="setActivity"></select></label>
     <label class="field">Daily Goal (min)<input type="number" id="setGoal" min="15" max="600" step="15" value="120"></label>
     <label class="switch-row"><input type="checkbox" id="setPomodoro"><span>Pomodoro Auto-Cycle</span></label>
@@ -573,7 +617,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
   function dayKey(d) { d = d || new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
   function prettyDate(iso) { const d = new Date(iso); if (isNaN(d.getTime())) return ''; return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }); }
 
-  const KEYS = { settings: 'ekagrata.settings.v3', history: 'ekagrata.history.v3', live: 'ekagrata.live.v3' };
+  const KEYS = { settings: 'ekagrata.settings.v3', history: 'ekagrata.history.v3', live: 'ekagrata.live.v3', user: 'ekagrata.user.v1' };
   const store = {
     get(k, fb) { try { const r = localStorage.getItem(k); if (r == null) return fb; const p = JSON.parse(r); return p == null ? fb : p; } catch (e) { return fb; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
@@ -625,12 +669,101 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
   const App = {
     settings: Object.assign({}, DEFAULT_SETTINGS, store.get(KEYS.settings, {})),
     history: Array.isArray(store.get(KEYS.history, [])) ? store.get(KEYS.history, []) : [],
+    user: store.get(KEYS.user, null), // Google User Data
     activity: 'study', soundId: 'rain', secondaryId: null, stimulation: 'medium',
     recommendation: null, pendingSession: null, sleepTimeout: null, volumeSavePending: null
   };
   App.activity = ACTIVITIES[App.settings.defaultActivity] ? App.settings.defaultActivity : 'study';
   App.stimulation = ['low', 'medium', 'high'].indexOf(App.settings.stimulation) >= 0 ? App.settings.stimulation : 'medium';
   App.soundId = LEVEL_MAP[App.activity][App.stimulation];
+
+  /* ============================ GOOGLE LOGIN LOGIC ============================ */
+  function decodeJwt(token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e) { return null; }
+  }
+
+  window.handleGoogleLogin = function(response) {
+    const payload = decodeJwt(response.credential);
+    if (payload) {
+      App.user = { name: payload.name, email: payload.email, picture: payload.picture };
+      store.set(KEYS.user, App.user);
+      renderUserProfile();
+      renderWelcome();
+      toast('Welcome, ' + App.user.name + '!', 'ok');
+    }
+  };
+
+  function renderUserProfile() {
+    const container = $('#userContainer');
+    if (App.user) {
+      container.innerHTML = `
+        <div class="user-profile" id="userProfileBtn" title="Click to logout">
+          <img src="${App.user.picture}" class="user-avatar" alt="Profile">
+          <span class="user-name">${App.user.name.split(' ')[0]}</span>
+        </div>
+      `;
+      $('#userProfileBtn').addEventListener('click', async () => {
+        const ok = await confirmDialog('Log out?', 'You will need to sign in again.', 'Logout');
+        if (ok) {
+          App.user = null;
+          store.del(KEYS.user);
+          renderUserProfile();
+          renderWelcome();
+          toast('Logged out.', '');
+        }
+      });
+    } else {
+      // Google GIS Button initialization
+      container.innerHTML = `<div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
+      <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-text="signin_with" data-size="medium"></div>`;
+      
+      // Re-trigger GIS rendering if the script is loaded
+      if (window.google && window.google.accounts) {
+        window.google.accounts.id.initialize({
+          client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+          callback: window.handleGoogleLogin
+        });
+        window.google.accounts.id.renderButton(
+          container.querySelector('.g_id_signin'),
+          { theme: "outline", size: "medium", shape: "pill" }
+        );
+      }
+    }
+  }
+
+  /* ============================ YOUTUBE INTEGRATION ============================ */
+  function extractYoutubeId(urlOrId) {
+    if (!urlOrId) return null;
+    // If it's already an 11-char ID
+    if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
+    
+    // Regex for standard YouTube links
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = urlOrId.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  }
+
+  function loadYoutubeVideo() {
+    const input = $('#ytUrlInput').value.trim();
+    const videoId = extractYoutubeId(input);
+    const container = $('#videoContainer');
+    
+    if (videoId) {
+      // Using youtube-nocookie for privacy and ad-reduction
+      container.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+      container.style.display = 'block';
+      toast('Video loaded. Right-click for Picture-in-Picture.', 'ok');
+    } else {
+      toast('Invalid YouTube URL or ID.', 'error');
+    }
+  }
 
   /* ============================ AUDIO ENGINE ============================ */
   const AudioEngine = (function () {
@@ -822,7 +955,6 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
       oscL.connect(gL); gL.connect(merger, 0, 0); oscR.connect(gR); gR.connect(merger, 0, 1); merger.connect(binauralGain);
       oscL.start(t); oscR.start(t); binauralNodes = [oscL, oscR, gL, gR, merger];
       
-      // Fade in
       binauralGain.gain.setValueAtTime(0.0001, t);
       binauralGain.gain.linearRampToValueAtTime(state.binauralVol, t + 1.5);
     }
@@ -852,9 +984,6 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
       teardownBus(primaryBus, primaryNodes, primaryTimers, 0.25);
       teardownBus(secondaryBus, secondaryNodes, secondaryTimers, 0.25);
       if (fileEl) try { fileEl.pause(); } catch (e) {}
-      
-      // Don't teardown binaural here - let it stay if it was on
-      // Only teardown and rebuild if we need to change binaural state
       
       state.primary = primary; state.secondary = secondary || null;
       
@@ -914,7 +1043,6 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
     async function setBinaural(on) {
       state.binauralOn = !!on;
       if (!state.binauralOn) {
-        // Fade out
         if (ctx && binauralGain) {
           const t = ctx.currentTime;
           binauralGain.gain.cancelScheduledValues(t);
@@ -1108,6 +1236,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
     els.historyList = $('#historyList'); els.clearHistoryBtn = $('#clearHistoryBtn'); els.segButtons = $$('.seg button');
     els.settingsModal = $('#settingsModal'); els.feedbackModal = $('#feedbackModal'); els.confirmModal = $('#confirmModal'); els.toasts = $('#toasts');
     els.streakBadge = $('#streakBadge'); els.goalFill = $('#goalFill'); els.goalTxt = $('#goalTxt');
+    els.ytUrlInput = $('#ytUrlInput'); els.loadVideoBtn = $('#loadVideoBtn');
   }
 
   function toast(message, type) {
@@ -1174,7 +1303,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
     }
     els.muteBtn.textContent = st.muted ? 'Unmute' : 'Mute';
     els.binauralToggle.checked = st.binauralOn;
-    renderNowPlaying(); // Update badge
+    renderNowPlaying();
   }
 
   function setAudioStatus(msg) { els.audioStatus.textContent = msg; }
@@ -1227,7 +1356,10 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
   }
 
   function renderWelcome() {
-    const name = (App.settings.name || '').trim(), hour = new Date().getHours();
+    let name = (App.settings.name || '').trim();
+    if (App.user) name = App.user.name.split(' ')[0]; // Use Google name if logged in
+    
+    const hour = new Date().getHours();
     let greet = 'Welcome'; if (hour < 12) greet = 'Good morning'; else if (hour < 18) greet = 'Good afternoon'; else greet = 'Good evening';
     els.welcomeHeading.textContent = greet + (name ? ', ' + name : '') + '!';
     els.welcomeActivity.textContent = ACTIVITIES[App.activity].name; els.welcomeSound.textContent = SOUNDS[App.soundId].name;
@@ -1347,16 +1479,13 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
     if (!AudioEngine.getState().playing) { App.soundId = LEVEL_MAP[id][App.stimulation]; App.secondaryId = null; renderSounds(); renderNowPlaying(); }
     else toast('Activity changed. Current audio kept playing.', '');
     
-    // Auto-enable binaural for Lecture Mode
     if (id === 'lecture' && App.settings.binauralAuto && !AudioEngine.getState().binauralOn) {
       setTimeout(() => {
         toast('Lecture Mode: auto-enabling low-volume binaural focus layer.', 'ok');
         AudioEngine.setBinaural(true).then(() => {
           AudioEngine.setBinauralVolume(App.settings.binauralVol);
           els.binauralToggle.checked = true;
-          renderTransport();
-          refreshAudioStatus();
-          Viz.start();
+          renderTransport(); refreshAudioStatus(); Viz.start();
         });
       }, 400);
     }
@@ -1443,6 +1572,8 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
 
   function init() {
     cacheElements();
+    renderUserProfile(); // Initialize Google Login UI
+
     const vol = clamp(Number(App.settings.defaultVolume) || 0.6, 0, 1);
     els.volumeSlider.value = String(Math.round(vol * 100)); els.volumeValue.textContent = Math.round(vol * 100) + '%';
     AudioEngine.setVolume(vol);
@@ -1455,6 +1586,10 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
     
     renderActivities(); renderSounds(); renderNowPlaying(); renderTransport(); renderWelcome(); renderSmartPanel(); renderInsights(); renderTimer(); renderStatusPill();
     Viz.init(els.viz); if (App.settings.animations === false) Viz.stop();
+
+    // YouTube loader
+    els.loadVideoBtn.addEventListener('click', loadYoutubeVideo);
+    els.ytUrlInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') loadYoutubeVideo(); });
 
     els.startSessionBtn.addEventListener('click', startSessionFromButton);
     els.playPauseBtn.addEventListener('click', togglePlay);

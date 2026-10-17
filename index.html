@@ -720,14 +720,13 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
         }
       });
     } else {
-      // Google GIS Button initialization
-      container.innerHTML = `<div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
+      // Google GIS Button initialization with your actual Client ID
+      container.innerHTML = `<div id="g_id_onload" data-client_id="872821320679-valr389dngnf3sb7467jr0h13sup85l9.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
       <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-text="signin_with" data-size="medium"></div>`;
       
-      // Re-trigger GIS rendering if the script is loaded
       if (window.google && window.google.accounts) {
         window.google.accounts.id.initialize({
-          client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+          client_id: "872821320679-valr389dngnf3sb7467jr0h13sup85l9.apps.googleusercontent.com",
           callback: window.handleGoogleLogin
         });
         window.google.accounts.id.renderButton(
@@ -741,10 +740,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
   /* ============================ YOUTUBE INTEGRATION ============================ */
   function extractYoutubeId(urlOrId) {
     if (!urlOrId) return null;
-    // If it's already an 11-char ID
     if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
-    
-    // Regex for standard YouTube links
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = urlOrId.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;

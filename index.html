@@ -258,6 +258,22 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
 #toasts { position:fixed;left:0;right:0;bottom:24px;z-index:200;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;padding:0 20px; }
 .toast { max-width:400px;width:100%;padding:14px 20px;border-radius:12px;background:#1e293b;border:1px solid rgba(255,255,255,.2);color:#fff;font-size:.85rem;font-weight:600;box-shadow:0 15px 30px rgba(0,0,0,.6);animation:toastIn .3s ease; }
 @keyframes toastIn{from{transform:translateY(20px) scale(.9);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
+
+/* YouTube Fullscreen Overlay */
+#ytOverlay {
+  position:fixed;inset:0;z-index:9999;background:#0a0f1c;display:none;flex-direction:column;
+  padding-top: env(safe-area-inset-top);
+}
+.yt-header {
+  display:flex;align-items:center;padding:12px 16px;background:#0f172a;border-bottom:1px solid var(--line);
+  gap:12px;box-shadow:0 5px 15px rgba(0,0,0,0.5); z-index: 10;
+}
+.yt-body { flex:1; position:relative; background:#000; display:flex; flex-direction:column; }
+.yt-fallback {
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px;text-align:center;color:var(--muted);z-index:1;background:#0a0f1c;
+}
+#ytIframe { width:100%;height:100%;border:0;position:relative;z-index:2;display:none; }
 </style>
 </head>
 <body>
@@ -290,6 +306,24 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
     </button>
   </div>
 </header>
+
+<!-- YouTube Fullscreen Overlay -->
+<div id="ytOverlay">
+  <div class="yt-header">
+    <button id="ytBackBtn" class="btn btn-ghost" style="padding:8px 12px; font-size:0.9rem;">&larr; Back</button>
+    <div style="flex:1; display:flex; gap:8px;">
+      <input type="text" id="ytSearchInput" placeholder="Paste YouTube link here..." style="flex:1; background:rgba(0,0,0,0.4); border:1px solid var(--line); color:#fff; border-radius:10px; padding:8px 12px; font-size:0.85rem;">
+      <button id="ytSearchBtn" class="btn btn-primary" style="padding:8px 16px; font-size:0.85rem;">Play</button>
+    </div>
+  </div>
+  <div class="yt-body">
+    <div id="ytFallback" class="yt-fallback">
+      <h3 style="color:#fff; margin-bottom:10px;">Distraction-Free YouTube</h3>
+      <p style="font-size:0.85rem; margin-bottom:20px;">Paste a YouTube link above to watch without ads.<br>Use Picture-in-Picture for background play.</p>
+    </div>
+    <iframe id="ytIframe" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>
+</div>
 
 <!-- Electric Navigator Navigation -->
 <div class="electric-nav-container">
@@ -478,30 +512,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
 
 </main>
 
-<!-- YouTube Modal (Upgraded) -->
-<div class="modal" id="ytModal">
-  <div class="modal-card">
-    <div class="modal-head"><h2>YouTube Focus</h2><button class="close-x" id="ytClose">&times;</button></div>
-    
-    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.1);">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:#fff;">1. Open Full YouTube</h3>
-      <p style="font-size:0.75rem; color:var(--muted); margin-bottom:12px;">Log in to see your personalized feed. (Background play requires YouTube Premium).</p>
-      <a href="https://m.youtube.com" target="_blank" class="btn btn-primary" style="width:100%; text-decoration:none;">Open YouTube App / Web</a>
-    </div>
-
-    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.1);">
-      <h3 style="font-size:0.9rem; margin-bottom:8px; color:#fff;">2. Distraction-Free Player</h3>
-      <p style="font-size:0.75rem; color:var(--muted); margin-bottom:12px;">Paste a link to watch without ads. Use PiP for background.</p>
-      <div style="display:flex; gap:8px;">
-        <input type="text" id="ytModalInput" placeholder="Paste YouTube link...">
-        <button id="ytModalLoadBtn" class="btn btn-primary">Load</button>
-      </div>
-    </div>
-
-    <div id="ytModalContainer" style="position:relative; width:100%; padding-bottom:56.25%; background:#000; border-radius:12px; overflow:hidden; display:none;"></div>
-  </div>
-</div>
-
 <div class="modal" id="settingsModal">
   <div class="modal-card">
     <div class="modal-head"><h2>Settings</h2><button class="close-x" id="settingsClose">&times;</button></div>
@@ -640,11 +650,12 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
     file:      { name: 'My Audio File',    desc: 'Local file', kind: 'file' }
   };
 
+  // FIX: Made distinct recommendations for different stimulation levels
   const LEVEL_MAP = {
     lecture:  { low: 'silence', medium: 'silence', high: 'rain' },
-    study:    { low: 'rain',    medium: 'rain',    high: 'pad' },
+    study:    { low: 'silence', medium: 'rain',    high: 'pad' },
     problem:  { low: 'silence', medium: 'drone',   high: 'pad' },
-    reading:  { low: 'rain',    medium: 'forest',  high: 'pad' },
+    reading:  { low: 'silence', medium: 'rain',    high: 'forest' },
     creative: { low: 'forest',  medium: 'pad',     high: 'pad' },
     relax:    { low: 'forest',  medium: 'ocean',   high: 'ocean' }
   };
@@ -727,7 +738,18 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
     }
   }
 
-  /* ============================ YOUTUBE INTEGRATION ============================ */
+  /* ============================ YOUTUBE OVERLAY LOGIC ============================ */
+  function openYtOverlay() {
+    document.getElementById('ytOverlay').style.display = 'flex';
+    document.getElementById('ytFallback').style.display = 'flex';
+    document.getElementById('ytIframe').style.display = 'none';
+    document.getElementById('ytIframe').src = ''; 
+    document.getElementById('ytSearchInput').value = '';
+  }
+  function closeYtOverlay() {
+    document.getElementById('ytOverlay').style.display = 'none';
+    document.getElementById('ytIframe').src = ''; 
+  }
   function extractYoutubeId(urlOrId) {
     if (!urlOrId) return null;
     if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
@@ -735,17 +757,23 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
     const match = urlOrId.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
   }
-
-  function loadYtVideoFromModal() {
-    const input = $('#ytModalInput').value.trim();
-    const videoId = extractYoutubeId(input);
-    const container = $('#ytModalContainer');
-    if (videoId) {
-      container.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe>`;
-      container.style.display = 'block';
-      toast('Video loaded. Right-click for PiP mode.', 'ok');
+  function playYtVideo(id) {
+    document.getElementById('ytFallback').style.display = 'none';
+    const iframe = document.getElementById('ytIframe');
+    iframe.style.display = 'block';
+    iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+  }
+  function handleYtSearch() {
+    const val = document.getElementById('ytSearchInput').value.trim();
+    const id = extractYoutubeId(val);
+    if (id) {
+      playYtVideo(id);
     } else {
-      toast('Invalid YouTube URL or ID.', 'error');
+      // If it's a search query, try to load the search embed (works on many devices)
+      document.getElementById('ytFallback').style.display = 'none';
+      const iframe = document.getElementById('ytIframe');
+      iframe.style.display = 'block';
+      iframe.src = `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(val)}&rel=0`;
     }
   }
 
@@ -1208,7 +1236,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
     els.historyList = $('#historyList'); els.clearHistoryBtn = $('#clearHistoryBtn'); els.segButtons = $$('.seg button');
     els.settingsModal = $('#settingsModal'); els.feedbackModal = $('#feedbackModal'); els.confirmModal = $('#confirmModal'); els.toasts = $('#toasts');
     els.streakBadge = $('#streakBadge'); els.goalFill = $('#goalFill'); els.goalTxt = $('#goalTxt');
-    els.ytModal = $('#ytModal');
   }
 
   function toast(message, type) {
@@ -1389,17 +1416,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
   function renderSmartPanel() {
     els.smartModeToggle.checked = !!App.settings.smartMode; 
     els.segButtons.forEach(b => {
-      if (b.dataset.stim === App.stimulation) {
-        b.classList.add('active');
-        b.style.background = 'rgba(46,230,214,.2)';
-        b.style.borderColor = 'rgba(46,230,214,.4)';
-        b.style.color = '#fff';
-      } else {
-        b.classList.remove('active');
-        b.style.background = 'rgba(255,255,255,.03)';
-        b.style.borderColor = 'var(--line)';
-        b.style.color = 'var(--muted)';
-      }
+      b.classList.toggle('active', b.dataset.stim === App.stimulation);
     });
     els.recoBtn.disabled = !App.settings.smartMode; 
     if (!App.recommendation) els.recoCard.style.display = 'none';
@@ -1540,9 +1557,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
   }
   function closeSettings() { els.settingsModal.classList.remove('open'); }
 
-  function openYtModal() { els.ytModal.classList.add('open'); }
-  function closeYtModal() { els.ytModal.classList.remove('open'); }
-
   function init() {
     cacheElements();
     renderUserProfile(); 
@@ -1560,11 +1574,11 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
     renderActivities(); renderSounds(); renderNowPlaying(); renderTransport(); renderWelcome(); renderSmartPanel(); renderInsights(); renderTimer(); renderStatusPill();
     Viz.init(els.viz); if (App.settings.animations === false) Viz.stop();
 
-    $('#ytBtn').addEventListener('click', openYtModal);
-    $('#ytClose').addEventListener('click', closeYtModal);
-    $('#ytModalLoadBtn').addEventListener('click', loadYtVideoFromModal);
-    $('#ytModalInput').addEventListener('keypress', e => { if (e.key === 'Enter') loadYtVideoFromModal(); });
-    els.ytModal.addEventListener('click', e => { if (e.target === els.ytModal) closeYtModal(); });
+    // YT Overlay events
+    document.getElementById('ytBtn').addEventListener('click', openYtOverlay);
+    document.getElementById('ytBackBtn').addEventListener('click', closeYtOverlay);
+    document.getElementById('ytSearchBtn').addEventListener('click', handleYtSearch);
+    document.getElementById('ytSearchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleYtSearch(); });
 
     els.startSessionBtn.addEventListener('click', startSessionFromButton);
     els.playPauseBtn.addEventListener('click', togglePlay);
@@ -1688,7 +1702,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
 
     document.addEventListener('keydown', e => {
       const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
-      if (e.key === 'Escape') { closeSettings(); closeYtModal(); resolveConfirm(false); }
+      if (e.key === 'Escape') { closeSettings(); closeYtOverlay(); resolveConfirm(false); }
       if (typing) return;
       if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
       if (e.key === 'Enter') { e.preventDefault(); els.timerPrimary.click(); }
@@ -1701,4 +1715,4 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
 })();
 </script>
 </body>
-</html>
+  </html>

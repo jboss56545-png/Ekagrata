@@ -78,6 +78,7 @@ details{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:
 #toasts{position:fixed;left:0;right:0;bottom:24px;z-index:200;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;padding:0 20px}
 .toast{max-width:400px;width:100%;padding:14px 20px;border-radius:12px;background:#1e293b;border:1px solid rgba(255,255,255,.25);font-size:.85rem;font-weight:600}
 #yt{position:fixed;inset:0;z-index:9999;background:#0a0f1c;display:none;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.yv{width:100%;max-width:900px;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden}.yv iframe{width:100%;height:100%;border:0}
 .yh{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#0f172a;border-bottom:1px solid var(--line)}
 .yb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:14px}
 </style></head><body>
@@ -90,9 +91,9 @@ details{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:
 </header>
 
 <div id="yt"><div class="yh"><button id="ytBack" class="btn bp">← Back to Ekagrata</button><b>YouTube Focus</b></div>
- <div class="yb"><h3>Distraction-Free YouTube</h3><p id="ytSt" style="font-size:.85rem"></p>
- <button id="ytOpen" class="btn bp bl" style="max-width:320px">Open Your YouTube Feed</button>
- <p style="font-size:.75rem;max-width:320px">YouTube iframe mein embed nahi hone deta, isliye feed naye tab mein khulta hai (aapke browser ke YouTube login ke saath). Background play ke liye video mein Picture-in-Picture (PiP) use karein.</p></div></div>
+ <div class="yb"><div style="display:flex;gap:8px;width:100%;max-width:900px"><input type="text" id="ytIn" placeholder="YouTube video / playlist link paste karein" style="flex:1"><button id="ytGo" class="btn bp">Play</button><button id="ytStop" class="btn">Stop</button></div>
+<div id="ytFrameBox" class="yv" style="display:none"><iframe id="ytFrame" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+<p id="ytSt" style="font-size:.8rem;max-width:520px"></p><button id="ytOpen" class="btn bs">Open YouTube in new tab</button></div></div>
 
 <div class="navc"><div class="nav"><div class="nl"></div><div class="ng"></div>
  <button class="ni active" data-t="t1">Dashboard</button><button class="ni" data-t="t2">Audio</button><button class="ni" data-t="t3">Timer</button><button class="ni" data-t="t4">Stats</button></div></div>
@@ -267,7 +268,20 @@ function renderUser(){const c=$('#uc');c.innerHTML='';
  else setTimeout(renderUser,1000)}
 
 /* YouTube */
-function openYt(){$('#ytSt').textContent=App.user?'Signed in as '+App.user.name+'.':'Top bar se Google sign-in karein, phir feed kholein.';$('#yt').style.display='flex'}
+function ytEmbed(u){u=(u||'').trim();if(!u)return null;let l=null,v=null;
+ try{const x=new URL(/^https?:\/\//i.test(u)?u:'https://'+u),h=x.hostname.replace(/^www\.|^m\./,'');
+  if(!/(^|\.)(youtube\.com|youtube-nocookie\.com)$|^youtu\.be$/.test(h))return null;
+  l=x.searchParams.get('list');v=x.searchParams.get('v');
+  if(h==='youtu.be')v=x.pathname.slice(1);else{const m=x.pathname.match(/^\/(embed|shorts|live)\/([\w-]{11})/);if(m)v=m[2]}}catch(e){return null}
+ if(v&&!/^[\w-]{11}$/.test(v))v=null;const q='?autoplay=1&playsinline=1&rel=0&modestbranding=1',b='https://www.youtube-nocookie.com/embed/';
+ if(l&&/^[\w-]+$/.test(l))return v?b+v+q+'&list='+l:b+'videoseries'+q+'&list='+l;
+ return v?b+v+q:null}
+function playYt(){const u=$('#ytIn').value;if(!u.trim()){stopYt();return}const e=ytEmbed(u);
+ if(!e){$('#ytSt').textContent='Valid YouTube video ya playlist link paste karein.';return}
+ st.set('ekagrata.yt',u.trim());$('#ytFrame').src=e;$('#ytFrameBox').style.display='block';
+ $('#ytSt').textContent='Public/unlisted playlist hi chalegi. Ads fully band nahi hote. Fullscreen button se landscape karein; background ke liye PiP.'}
+function stopYt(){$('#ytFrame').src='';$('#ytFrameBox').style.display='none'}
+function openYt(){$('#ytIn').value=st.get('ekagrata.yt','');if(!$('#ytSt').textContent)$('#ytSt').textContent='Public ya unlisted video/playlist ka link paste karke Play dabayein.';$('#yt').style.display='flex'}
 function closeYt(){$('#yt').style.display='none'}
 function openYtFeed(){window.open('https://m.youtube.com/','_blank','noopener')}
 
@@ -390,7 +404,7 @@ function init(){
  const bw=$('#bw');bw.value=BWV[App.s.brain]?App.s.brain:'alpha';AE.setFreq(200,BWV[bw.value]);
  renderActs();renderSnds();renderNow();renderTransport();renderWelcome();renderSmart();renderInsights();renderTimer();renderPill();Viz.init($('#viz'));setupMS();
 
- $('#ytBtn').addEventListener('click',openYt);$('#ytBack').addEventListener('click',closeYt);$('#ytOpen').addEventListener('click',openYtFeed);
+ $('#ytBtn').addEventListener('click',openYt);$('#ytBack').addEventListener('click',closeYt);$('#ytOpen').addEventListener('click',openYtFeed);$('#ytGo').addEventListener('click',playYt);$('#ytStop').addEventListener('click',stopYt);$('#ytIn').addEventListener('keydown',e=>{if(e.key==='Enter')playYt()});
  $('#startBtn').addEventListener('click',startSession);$('#pp').addEventListener('click',togglePlay);
  $('#stp').addEventListener('click',()=>{AE.stop();renderTransport();refreshStatus()});
  $('#mu').addEventListener('click',()=>{AE.setMute(!AE.state().muted);renderTransport()});

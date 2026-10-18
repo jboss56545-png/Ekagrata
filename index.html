@@ -92,7 +92,7 @@ details{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:
 
 <div id="yt"><div class="yh"><button id="ytBack" class="btn bp">← Back to Ekagrata</button><b>YouTube Focus</b></div>
  <div class="yb"><div style="display:flex;gap:8px;width:100%;max-width:900px"><input type="text" id="ytIn" placeholder="YouTube video / playlist link paste karein" style="flex:1"><button id="ytGo" class="btn bp">Play</button><button id="ytStop" class="btn">Stop</button></div>
-<div id="ytFrameBox" class="yv" style="display:none"><iframe id="ytFrame" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+<div id="ytFrameBox" class="yv" style="display:none"><div id="ytPlayer"></div></div>
 <p id="ytSt" style="font-size:.8rem;max-width:520px"></p><button id="ytOpen" class="btn bs">Open YouTube in new tab</button></div></div>
 
 <div class="navc"><div class="nav"><div class="nl"></div><div class="ng"></div>
@@ -268,19 +268,24 @@ function renderUser(){const c=$('#uc');c.innerHTML='';
  else setTimeout(renderUser,1000)}
 
 /* YouTube */
-function ytEmbed(u){u=(u||'').trim();if(!u)return null;let l=null,v=null;
- try{const x=new URL(/^https?:\/\//i.test(u)?u:'https://'+u),h=x.hostname.replace(/^www\.|^m\./,'');
-  if(!/(^|\.)(youtube\.com|youtube-nocookie\.com)$|^youtu\.be$/.test(h))return null;
-  l=x.searchParams.get('list');v=x.searchParams.get('v');
-  if(h==='youtu.be')v=x.pathname.slice(1);else{const m=x.pathname.match(/^\/(embed|shorts|live)\/([\w-]{11})/);if(m)v=m[2]}}catch(e){return null}
- if(v&&!/^[\w-]{11}$/.test(v))v=null;const q='?autoplay=1&playsinline=1&rel=0&modestbranding=1',b='https://www.youtube-nocookie.com/embed/';
- if(l&&/^[\w-]+$/.test(l))return v?b+v+q+'&list='+l:b+'videoseries'+q+'&list='+l;
- return v?b+v+q:null}
-function playYt(){const u=$('#ytIn').value;if(!u.trim()){stopYt();return}const e=ytEmbed(u);
- if(!e){$('#ytSt').textContent='Valid YouTube video ya playlist link paste karein.';return}
- st.set('ekagrata.yt',u.trim());$('#ytFrame').src=e;$('#ytFrameBox').style.display='block';
- $('#ytSt').textContent='Public/unlisted playlist hi chalegi. Ads fully band nahi hote. Fullscreen button se landscape karein; background ke liye PiP.'}
-function stopYt(){$('#ytFrame').src='';$('#ytFrameBox').style.display='none'}
+let ytP=null,ytOk=false,ytErr=0,ytPend=null;
+window.onYouTubeIframeAPIReady=()=>{if(ytPend){const f=ytPend;ytPend=null;f()}};
+function ytApi(cb){if(window.YT&&YT.Player){cb();return}ytPend=cb;if($('#ytApi'))return;const s=document.createElement('script');s.id='ytApi';s.src='https://www.youtube.com/iframe_api';s.onerror=()=>{$('#ytSt').textContent='YouTube player load nahi hua. Internet check karein.'};document.head.appendChild(s)}
+function ytParse(u){let l=null,v=null;try{const x=new URL(/^https?:\/\//i.test(u.trim())?u.trim():'https://'+u.trim()),h=x.hostname.replace(/^www\.|^m\.|^music\./,'');
+ if(!/^(youtube\.com|youtube-nocookie\.com|youtu\.be)$/.test(h))return null;l=x.searchParams.get('list');v=x.searchParams.get('v');
+ if(h==='youtu.be')v=x.pathname.slice(1);else{const m=x.pathname.match(/^\/(embed|shorts|live)\/([\w-]{11})/);if(m)v=m[2]}}catch(e){return null}
+ if(l&&!/^[\w-]+$/.test(l))l=null;if(v&&!/^[\w-]{11}$/.test(v))v=null;return l||v?{l,v}:null}
+function ytError(e){const c=e.data,pl=ytP.getPlaylist&&ytP.getPlaylist(),n=pl&&pl.length?pl.length:(ytP.getPlaylistId&&ytP.getPlaylistId()?50:0),m=$('#ytSt');
+ if(!n){m.textContent='Ye video embed nahi ho sakta (error '+c+'). Owner ne embedding band rakhi hai ya video unavailable hai.';return}
+ if(++ytErr>=n){m.textContent='Playlist ke saare video embed-blocked/unavailable lag rahe hain (error '+c+').';return}
+ m.textContent='Ek video embed-blocked tha (error '+c+'), agle par ja raha hoon… ('+ytErr+' skip)';ytP.nextVideo()}
+function playYt(){const u=$('#ytIn').value;if(!u.trim()){stopYt();return}const r=ytParse(u);
+ if(!r){$('#ytSt').textContent='Valid YouTube video ya playlist link paste karein.';return}
+ st.set('ekagrata.yt',u.trim());$('#ytFrameBox').style.display='block';ytErr=0;$('#ytSt').textContent='Blocked video aaye to app khud skip karega. Fullscreen se landscape karein; background ke liye PiP.';
+ ytApi(()=>{if(ytP&&ytOk){if(r.l)ytP.loadPlaylist({list:r.l,listType:'playlist',index:0});else ytP.loadVideoById(r.v);return}
+  if(ytP)return;const pv={autoplay:1,playsinline:1,rel:0,modestbranding:1};if(r.l){pv.listType='playlist';pv.list=r.l}
+  ytP=new YT.Player('ytPlayer',{width:'100%',height:'100%',videoId:r.l?undefined:r.v,playerVars:pv,events:{onReady:()=>{ytOk=true},onError:ytError,onStateChange:e=>{if(e.data===1)ytErr=0}}})})}
+function stopYt(){try{ytP&&ytOk&&ytP.stopVideo()}catch(e){}$('#ytFrameBox').style.display='none'}
 function openYt(){$('#ytIn').value=st.get('ekagrata.yt','');if(!$('#ytSt').textContent)$('#ytSt').textContent='Public ya unlisted video/playlist ka link paste karke Play dabayein.';$('#yt').style.display='flex'}
 function closeYt(){$('#yt').style.display='none'}
 function openYtFeed(){window.open('https://m.youtube.com/','_blank','noopener')}

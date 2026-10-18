@@ -258,12 +258,10 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
 .hi-min { font-size:.8rem; font-weight:800; color:var(--cyan); }
 .hi-fb { font-size:.55rem; color:var(--muted); text-align:right; }
 
-/* Modals */
-.modal { position:fixed;inset:0;z-index:100;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:0; }
-@media(min-width:640px){ .modal { align-items:center;padding:20px; } }
+/* Modals (Fixed for Mobile) */
+.modal { position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);padding:20px; }
 .modal.open { display:flex; }
-.modal-card { width:100%;max-width:480px;max-height:90vh;overflow-y:auto;background:linear-gradient(160deg, rgba(30,40,70,.95), rgba(10,15,30,.95));border:1px solid rgba(255,255,255,.15);border-top-color:rgba(255,255,255,.3);border-radius:28px 28px 0 0;padding:24px;padding-bottom:calc(24px + env(safe-area-inset-bottom));box-shadow:0 -20px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,.2);animation:slideUp .3s cubic-bezier(0.2, 0.8, 0.2, 1); }
-@media(min-width:640px){ .modal-card { border-radius:28px; } }
+.modal-card { width:100%;max-width:480px;max-height:90vh;overflow-y:auto;background:#0f172a;border:1px solid rgba(255,255,255,.15);border-radius:28px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.8);animation:slideUp .3s cubic-bezier(0.2, 0.8, 0.2, 1); }
 @keyframes slideUp{from{transform:translateY(50px) scale(.95);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
 .modal-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:20px; }
 .modal-head h2 { font-size:1.15rem;font-weight:800; }
@@ -275,7 +273,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
 .fb-btn:hover { background:rgba(255,255,255,.08); border-color:rgba(46,230,214,.3); }
 
 #toasts { position:fixed;left:0;right:0;bottom:24px;z-index:200;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;padding:0 20px; }
-.toast { max-width:400px;width:100%;padding:14px 20px;border-radius:16px;background:rgba(30,40,70,.95);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:.85rem;font-weight:600;box-shadow:0 15px 30px rgba(0,0,0,.6);animation:toastIn .3s ease; }
+.toast { max-width:400px;width:100%;padding:14px 20px;border-radius:16px;background:rgba(30,40,70,.95);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:.85rem;font-weight:600;box-shadow:0 15px 30px rgba(0,0,0,.6);animation:toastIn .3s ease; }
 @keyframes toastIn{from{transform:translateY(20px) scale(.9);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
 
 /* Mobile Performance & Layout */
@@ -321,6 +319,11 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
   <div class="topbar-actions">
     <div id="sessionStatus" class="status-pill" role="status" aria-live="polite">Idle</div>
     
+    <!-- YouTube Button -->
+    <button id="ytBtn" class="icon-btn" aria-label="YouTube Focus" title="YouTube Focus" style="color: #ff0000;">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.582 6.186a2.846 2.846 0 0 0-2.006-2.022C17.768 3.667 12 3.667 12 3.667s-5.768 0-7.576.497a2.846 2.846 0 0 0-2.006 2.022C2 8.008 2 12 2 12s0 3.992.418 5.814a2.846 2.846 0 0 0 2.006 2.022C6.232 20.333 12 20.333 12 20.333s5.768 0 7.576-.497a2.846 2.846 0 0 0 2.006-2.022C22 15.992 22 12 22 12s0-3.992-.418-5.814zM9.996 15.333V8.667L15.667 12l-5.671 3.333z"/></svg>
+    </button>
+
     <!-- User Profile / Google Login Container -->
     <div id="userContainer" style="display:flex; align-items:center;">
       <!-- Google Login Button will be injected here -->
@@ -393,27 +396,6 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
         </div>
       </div>
     </div>
-  </section>
-
-  <!-- Video / YouTube Panel -->
-  <section class="panel span-2">
-    <div class="panel-head">
-      <h2>Focus Video (Distraction-Free)</h2>
-      <span class="badge" style="background:rgba(255,255,255,.1);color:#fff;">Ad-Free</span>
-    </div>
-    
-    <div class="video-input-row">
-      <input type="text" id="ytUrlInput" placeholder="Paste YouTube link or Video ID here...">
-      <button id="loadVideoBtn" class="btn btn-primary btn-sm">Load</button>
-    </div>
-    
-    <div class="video-container" id="videoContainer" style="display:none;">
-      <!-- iframe injected here -->
-    </div>
-    
-    <p class="note" style="margin-top:10px;">
-      <strong>Tip:</strong> For true background audio, right-click the video and select <strong>"Picture in Picture"</strong>. You can then use the timer and audio workspace below. 
-    </p>
   </section>
 
   <section class="panel">
@@ -531,7 +513,23 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
 </main>
 </div>
 
-<!-- Modals -->
+<!-- YouTube Modal -->
+<div class="modal" id="ytModal">
+  <div class="modal-card">
+    <div class="modal-head"><h2>YouTube Focus Player</h2><button class="close-x" id="ytClose">&times;</button></div>
+    <p class="note">Paste a YouTube link below. It will load without ads.</p>
+    <div class="video-input-row">
+      <input type="text" id="ytModalInput" placeholder="Paste YouTube link...">
+      <button id="ytModalLoadBtn" class="btn btn-primary">Load</button>
+    </div>
+    <div class="video-container" id="ytModalContainer" style="display:none;"></div>
+    <p class="note" style="margin-top:10px;">
+      <strong>Tip for Background Play:</strong> Right-click the video and select <strong>"Picture in Picture"</strong>. You can then use the timer and audio workspace while the video plays in a floating window.
+    </p>
+  </div>
+</div>
+
+<!-- Settings Modal -->
 <div class="modal" id="settingsModal">
   <div class="modal-card">
     <div class="modal-head"><h2>Settings</h2><button class="close-x" id="settingsClose">&times;</button></div>
@@ -547,6 +545,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
   </div>
 </div>
 
+<!-- Feedback Modal -->
 <div class="modal" id="feedbackModal">
   <div class="modal-card">
     <div class="modal-head"><h2>Session Complete</h2></div>
@@ -563,6 +562,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
   </div>
 </div>
 
+<!-- Confirm Modal -->
 <div class="modal" id="confirmModal">
   <div class="modal-card">
     <div class="modal-head"><h2 id="confirmTitle">Are you sure?</h2></div>
@@ -669,7 +669,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
   const App = {
     settings: Object.assign({}, DEFAULT_SETTINGS, store.get(KEYS.settings, {})),
     history: Array.isArray(store.get(KEYS.history, [])) ? store.get(KEYS.history, []) : [],
-    user: store.get(KEYS.user, null), // Google User Data
+    user: store.get(KEYS.user, null),
     activity: 'study', soundId: 'rain', secondaryId: null, stimulation: 'medium',
     recommendation: null, pendingSession: null, sleepTimeout: null, volumeSavePending: null
   };
@@ -720,19 +720,17 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
         }
       });
     } else {
-      // Google GIS Button initialization with your actual Client ID
-      container.innerHTML = `<div id="g_id_onload" data-client_id="872821320679-valr389dngnf3sb7467jr0h13sup85l9.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
-      <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-text="signin_with" data-size="medium"></div>`;
-      
+      container.innerHTML = ''; // Clear container
       if (window.google && window.google.accounts) {
         window.google.accounts.id.initialize({
           client_id: "872821320679-valr389dngnf3sb7467jr0h13sup85l9.apps.googleusercontent.com",
           callback: window.handleGoogleLogin
         });
-        window.google.accounts.id.renderButton(
-          container.querySelector('.g_id_signin'),
-          { theme: "outline", size: "medium", shape: "pill" }
-        );
+        const btnDiv = document.createElement('div');
+        container.appendChild(btnDiv);
+        window.google.accounts.id.renderButton(btnDiv, { theme: "outline", size: "medium", shape: "pill" });
+      } else {
+        setTimeout(renderUserProfile, 1000); // Retry if script not loaded yet
       }
     }
   }
@@ -746,16 +744,14 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
     return (match && match[2].length === 11) ? match[2] : null;
   }
 
-  function loadYoutubeVideo() {
-    const input = $('#ytUrlInput').value.trim();
+  function loadYtVideoFromModal() {
+    const input = $('#ytModalInput').value.trim();
     const videoId = extractYoutubeId(input);
-    const container = $('#videoContainer');
-    
+    const container = $('#ytModalContainer');
     if (videoId) {
-      // Using youtube-nocookie for privacy and ad-reduction
       container.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
       container.style.display = 'block';
-      toast('Video loaded. Right-click for Picture-in-Picture.', 'ok');
+      toast('Video loaded. Right-click for PiP mode.', 'ok');
     } else {
       toast('Invalid YouTube URL or ID.', 'error');
     }
@@ -998,9 +994,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
       } else { secondaryBus = null; secondaryNodes = []; secondaryTimers = []; }
       
       if (state.binauralOn) {
-        if (binauralNodes.length === 0) {
-          buildBinaural();
-        }
+        if (binauralNodes.length === 0) buildBinaural();
         state.playing = true;
       }
       state.playing = (primary !== 'silence') || !!(secondary && secondary !== 'silence') || state.binauralOn;
@@ -1232,7 +1226,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
     els.historyList = $('#historyList'); els.clearHistoryBtn = $('#clearHistoryBtn'); els.segButtons = $$('.seg button');
     els.settingsModal = $('#settingsModal'); els.feedbackModal = $('#feedbackModal'); els.confirmModal = $('#confirmModal'); els.toasts = $('#toasts');
     els.streakBadge = $('#streakBadge'); els.goalFill = $('#goalFill'); els.goalTxt = $('#goalTxt');
-    els.ytUrlInput = $('#ytUrlInput'); els.loadVideoBtn = $('#loadVideoBtn');
+    els.ytModal = $('#ytModal');
   }
 
   function toast(message, type) {
@@ -1566,6 +1560,9 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
   }
   function closeSettings() { els.settingsModal.classList.remove('open'); }
 
+  function openYtModal() { els.ytModal.classList.add('open'); }
+  function closeYtModal() { els.ytModal.classList.remove('open'); }
+
   function init() {
     cacheElements();
     renderUserProfile(); // Initialize Google Login UI
@@ -1583,9 +1580,12 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
     renderActivities(); renderSounds(); renderNowPlaying(); renderTransport(); renderWelcome(); renderSmartPanel(); renderInsights(); renderTimer(); renderStatusPill();
     Viz.init(els.viz); if (App.settings.animations === false) Viz.stop();
 
-    // YouTube loader
-    els.loadVideoBtn.addEventListener('click', loadYoutubeVideo);
-    els.ytUrlInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') loadYoutubeVideo(); });
+    // YouTube Modal events
+    $('#ytBtn').addEventListener('click', openYtModal);
+    $('#ytClose').addEventListener('click', closeYtModal);
+    $('#ytModalLoadBtn').addEventListener('click', loadYtVideoFromModal);
+    $('#ytModalInput').addEventListener('keypress', e => { if (e.key === 'Enter') loadYtVideoFromModal(); });
+    els.ytModal.addEventListener('click', e => { if (e.target === els.ytModal) closeYtModal(); });
 
     els.startSessionBtn.addEventListener('click', startSessionFromButton);
     els.playPauseBtn.addEventListener('click', togglePlay);
@@ -1700,7 +1700,7 @@ input[type=number] { background:rgba(0,0,0,.3);border:1px solid var(--line);bord
 
     document.addEventListener('keydown', e => {
       const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
-      if (e.key === 'Escape') { closeSettings(); resolveConfirm(false); }
+      if (e.key === 'Escape') { closeSettings(); closeYtModal(); resolveConfirm(false); }
       if (typing) return;
       if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
       if (e.key === 'Enter') { e.preventDefault(); els.timerPrimary.click(); }

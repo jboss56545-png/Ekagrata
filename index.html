@@ -84,8 +84,8 @@ body{
   background: rgba(15, 23, 42, 0.8);
   border-bottom: 1px solid rgba(255,255,255,0.08);
   overflow-x: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none; 
+  -ms-overflow-style: none;  
 }
 .electric-nav-container::-webkit-scrollbar { display: none; }
 .electric-nav {
@@ -155,7 +155,7 @@ main{max-width:800px;margin:0 auto;padding:20px 16px; min-height: 80vh;}
 .panel-head h2 { font-size:1.05rem; font-weight:800; color:#fff; }
 
 /* Buttons */
-.btn { display:inline-flex;align-items:center;justify-content:center;gap:8px; border-radius:14px;border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.05);color:#fff; font-size:.85rem;font-weight:700;padding:12px 18px;cursor:pointer; transition:all .2s; }
+.btn { display:inline-flex;align-items:center;justify-content:center;gap:8px; border-radius:14px;border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.05);color:#fff; font-size:.85rem;font-weight:700;padding:12px 18px;cursor:pointer; transition:all .2s; text-decoration:none;}
 .btn:active { transform:scale(.96); }
 .btn-primary { background:linear-gradient(135deg, var(--indigo), var(--cyan));color:#02101c;border-color:transparent; box-shadow:0 10px 20px -10px rgba(46,230,214,.5); }
 .btn-lg { width:100%; padding:16px; font-size:1rem; }
@@ -189,9 +189,18 @@ main{max-width:800px;margin:0 auto;padding:20px 16px; min-height: 80vh;}
 input[type=text], input[type=number], select, textarea { background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:12px;color:#fff;padding:12px;font-size:.85rem;font-family:inherit;width:100%;transition:.2s;outline:none; }
 input:focus, select:focus, textarea:focus { border-color:rgba(46,230,214,.6); }
 
+/* Stimulation Buttons */
 .seg { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px; }
-.seg button { padding:10px 4px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted);font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s; }
-.seg button.active { background:rgba(46,230,214,.2);border-color:rgba(46,230,214,.4);color:#fff; }
+.seg button { 
+  padding:10px 4px; border-radius:10px; border:1px solid var(--line); 
+  background:rgba(255,255,255,.03); color:var(--muted); 
+  font-size:.75rem; font-weight:700; cursor:pointer; transition:.2s; 
+}
+.seg button.active { 
+  background:rgba(46,230,214,.2) !important; 
+  border-color:rgba(46,230,214,.4) !important; 
+  color:#fff !important; 
+}
 
 /* Audio Workspace */
 .viz { width:100%;height:80px;display:block;margin:8px 0 14px;border-radius:12px; background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08); }
@@ -339,15 +348,15 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
           <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px;">
             <div style="background:rgba(0,0,0,.3); padding:10px; border-radius:10px; text-align:center;">
               <div style="font-size:.55rem; color:var(--muted); text-transform:uppercase;">Sound</div>
-              <div id="recoSound" style="font-size:.8rem; font-weight:700;">—</div>
+              <div id="recoSound" style="font-size:.8rem; font-weight:700; color:#fff;">—</div>
             </div>
             <div style="background:rgba(0,0,0,.3); padding:10px; border-radius:10px; text-align:center;">
               <div style="font-size:.55rem; color:var(--muted); text-transform:uppercase;">Volume</div>
-              <div id="recoVolume" style="font-size:.8rem; font-weight:700;">—</div>
+              <div id="recoVolume" style="font-size:.8rem; font-weight:700; color:#fff;">—</div>
             </div>
             <div style="background:rgba(0,0,0,.3); padding:10px; border-radius:10px; text-align:center;">
               <div style="font-size:.55rem; color:var(--muted); text-transform:uppercase;">Duration</div>
-              <div id="recoDuration" style="font-size:.8rem; font-weight:700;">—</div>
+              <div id="recoDuration" style="font-size:.8rem; font-weight:700; color:#fff;">—</div>
             </div>
           </div>
           <div style="font-size:.75rem; color:#c9d0f2; line-height:1.5;"><strong>Why?</strong><ul id="recoReasons" style="padding-left:16px; margin-top:6px;"></ul></div>
@@ -469,17 +478,27 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
 
 </main>
 
-<!-- Modals -->
+<!-- YouTube Modal (Upgraded) -->
 <div class="modal" id="ytModal">
   <div class="modal-card">
-    <div class="modal-head"><h2>YouTube Focus Player</h2><button class="close-x" id="ytClose">&times;</button></div>
-    <p style="font-size:.8rem; color:var(--muted); margin-bottom:12px;">Paste a YouTube link below. It will load without ads.</p>
-    <div style="display:flex; gap:8px; margin-bottom:12px;">
-      <input type="text" id="ytModalInput" placeholder="Paste YouTube link...">
-      <button id="ytModalLoadBtn" class="btn btn-primary">Load</button>
+    <div class="modal-head"><h2>YouTube Focus</h2><button class="close-x" id="ytClose">&times;</button></div>
+    
+    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.1);">
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:#fff;">1. Open Full YouTube</h3>
+      <p style="font-size:0.75rem; color:var(--muted); margin-bottom:12px;">Log in to see your personalized feed. (Background play requires YouTube Premium).</p>
+      <a href="https://m.youtube.com" target="_blank" class="btn btn-primary" style="width:100%; text-decoration:none;">Open YouTube App / Web</a>
     </div>
+
+    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:12px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.1);">
+      <h3 style="font-size:0.9rem; margin-bottom:8px; color:#fff;">2. Distraction-Free Player</h3>
+      <p style="font-size:0.75rem; color:var(--muted); margin-bottom:12px;">Paste a link to watch without ads. Use PiP for background.</p>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="ytModalInput" placeholder="Paste YouTube link...">
+        <button id="ytModalLoadBtn" class="btn btn-primary">Load</button>
+      </div>
+    </div>
+
     <div id="ytModalContainer" style="position:relative; width:100%; padding-bottom:56.25%; background:#000; border-radius:12px; overflow:hidden; display:none;"></div>
-    <p style="font-size:.75rem; color:var(--muted); margin-top:12px;"><strong>Tip:</strong> Right-click the video and select <strong>"Picture in Picture"</strong> for background play.</p>
   </div>
 </div>
 
@@ -1369,7 +1388,19 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
 
   function renderSmartPanel() {
     els.smartModeToggle.checked = !!App.settings.smartMode; 
-    els.segButtons.forEach(b => b.classList.toggle('active', b.dataset.stim === App.stimulation));
+    els.segButtons.forEach(b => {
+      if (b.dataset.stim === App.stimulation) {
+        b.classList.add('active');
+        b.style.background = 'rgba(46,230,214,.2)';
+        b.style.borderColor = 'rgba(46,230,214,.4)';
+        b.style.color = '#fff';
+      } else {
+        b.classList.remove('active');
+        b.style.background = 'rgba(255,255,255,.03)';
+        b.style.borderColor = 'var(--line)';
+        b.style.color = 'var(--muted)';
+      }
+    });
     els.recoBtn.disabled = !App.settings.smartMode; 
     if (!App.recommendation) els.recoCard.style.display = 'none';
   }
@@ -1586,10 +1617,25 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
     els.breakToggle.addEventListener('change', () => { App.settings.breakReminders = els.breakToggle.checked; saveSettings(); });
 
     els.smartModeToggle.addEventListener('change', () => { App.settings.smartMode = els.smartModeToggle.checked; if (!App.settings.smartMode) { App.recommendation = null; els.recoCard.style.display = 'none'; } saveSettings(); renderSmartPanel(); });
+    
+    // FIX: Force update on stimulation button click
     els.segButtons.forEach(btn => btn.addEventListener('click', () => {
-      App.stimulation = btn.dataset.stim; App.settings.stimulation = App.stimulation; saveSettings(); renderSmartPanel();
-      if (!AudioEngine.getState().playing) { App.soundId = LEVEL_MAP[App.activity][App.stimulation]; renderSounds(); renderNowPlaying(); }
+      App.stimulation = btn.dataset.stim; 
+      App.settings.stimulation = App.stimulation; 
+      saveSettings(); 
+      renderSmartPanel();
+      
+      if (!AudioEngine.getState().playing) { 
+        App.soundId = LEVEL_MAP[App.activity][App.stimulation]; 
+        renderSounds(); 
+        renderNowPlaying(); 
+      }
+      
+      if (App.settings.smartMode) {
+        showRecommendation(recommend({ activity: App.activity, stimulation: App.stimulation, taskDesc: els.taskDesc.value || '' }));
+      }
     }));
+    
     els.taskDesc.addEventListener('input', () => { if (App.settings.smartMode) showRecommendation(recommend({ activity: App.activity, stimulation: App.stimulation, taskDesc: els.taskDesc.value })); });
     els.recoBtn.addEventListener('click', () => {
       if (!App.settings.smartMode) { toast('Enable smart mode first.', ''); return; }
@@ -1655,4 +1701,4 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;appearance:non
 })();
 </script>
 </body>
-</html>
+  </html>

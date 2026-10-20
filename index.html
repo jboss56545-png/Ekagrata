@@ -64,13 +64,15 @@ input:checked + .slider-toggle:before {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s, filter 0.3s;
   pointer-events: none;
   opacity: 0.4;
+  filter: grayscale(0.8);
 }
 .binaural-grid.active {
   pointer-events: auto;
   opacity: 1;
+  filter: grayscale(0);
 }
 .binaural-card {
   background: rgba(255,255,255,0.03);
@@ -414,6 +416,7 @@ binauralCards.forEach(card => {
   card.addEventListener('click', () => {
     if (!App.binauralEnabled) {
       toast('Turn on the switch above first to enable binaural beats.');
+      // [FIX] Visual shake or feedback could go here, but toast is sufficient
       return;
     }
     binauralCards.forEach(c => c.classList.remove('selected'));
@@ -440,11 +443,15 @@ $('loadMixBtn').addEventListener('click',()=>{
     if(m[k]!=null)$(id).value=m[k]
   });
   
-  // Restore Binaural State
-  App.binauralEnabled = m.binauralEnabled || false;
+  // [FIX] Restore Binaural State Correctly
+  App.binauralEnabled = !!m.binauralEnabled;
   App.binauralFreq = m.binauralFreq || 2;
+  
+  // Update UI Toggle
   binauralMasterToggle.checked = App.binauralEnabled;
   binauralGrid.classList.toggle('active', App.binauralEnabled);
+  
+  // Update Selected Card
   binauralCards.forEach(c => c.classList.toggle('selected', parseInt(c.dataset.freq) === App.binauralFreq));
   
   syncVolumeOutputs();
@@ -485,7 +492,7 @@ $('acceptRecoBtn').addEventListener('click',()=>{
   $('layer1Vol').value=r.vol;
   $('masterVol').value=Math.min(55,Math.max(20,r.vol));
   
-  // Turn off binaural on recommendation
+  // [FIX] Turn off binaural on recommendation to prevent conflict
   App.binauralEnabled = false;
   binauralMasterToggle.checked = false;
   binauralGrid.classList.remove('active');
@@ -515,7 +522,41 @@ document.querySelectorAll('#pomodoroMode button').forEach(b=>b.addEventListener(
 $('applyCustomBtn').addEventListener('click',()=>{const n=clamp($('customMinutes').value,1,180);$('customMinutes').value=n;App.timer.focusMinutes=n;if(!App.timer.running){App.timer.phase='focus';App.timer.total=n*60;App.timer.timeLeft=App.timer.total;updateTimerUI()}toast('Custom focus duration set to '+n+' minutes.')});
 $('startSessionBtn').addEventListener('click',()=>{switchTab('tab-timer');if(App.timer.phase!=='focus'&&!App.timer.running)resetTimer();if(!App.timer.running)startTimer();if(App.settings.autoAudio&&!App.audio.isPlaying)startAudio()});
 
-function restoreCheckpoint(){const cp=safeParse(STORAGE.checkpoint,null);if(!cp||!Number.isFinite(cp.timeLeft)||!Number.isFinite(cp.total))return;if(cp.running&&Number.isFinite(cp.endAt)){const left=Math.max(0,Math.ceil((cp.endAt-Date.now())/1000));if(left>0){App.timer.phase=['focus','break','longBreak'].includes(cp.phase)?cp.phase:'focus';App.timer.total=clamp(cp.total,1,10800);App.timer.timeLeft=left;App.timer.endAt=cp.endAt;App.timer.focusMinutes=clamp(cp.focusMinutes||25,1,180);App.timer.focusCount=clamp(cp.focusCount||0,0,100000);App.activity=ACTIVITIES.some(a=>a.id===cp.activity)?cp.activity:'study';$('taskDesc').value=cp.task||'';App.timer.running=true;App.timer.interval=setInterval(tickTimer,250);toast('Timer restored from its last checkpoint.')}}else{App.timer.phase=['focus','break','longBreak'].includes(cp.phase)?cp.phase:'focus';App.timer.total=clamp(cp.total,1,10800);App.timer.timeLeft=clamp(cp.timeLeft,0,App.timer.total);App.timer.focusMinutes=clamp(cp.focusMinutes||25,1,180);App.timer.focusCount=clamp(cp.focusCount||0,0,100000)}}
+function restoreCheckpoint(){
+    const cp=safeParse(STORAGE.checkpoint,null);
+    if(!cp||!Number.isFinite(cp.timeLeft)||!Number.isFinite(cp.total))return;
+    
+    // [FIX] Handle race condition where timer expired while closed
+    if(cp.running && Number.isFinite(cp.endAt)){
+        const left=Math.max(0,Math.ceil((cp.endAt-Date.now())/1000));
+        if(left>0){
+            App.timer.phase=['focus','break','longBreak'].includes(cp.phase)?cp.phase:'focus';
+            App.timer.total=clamp(cp.total,1,10800);
+            App.timer.timeLeft=left;
+            App.timer.endAt=cp.endAt;
+            App.timer.focusMinutes=clamp(cp.focusMinutes||25,1,180);
+            App.timer.focusCount=clamp(cp.focusCount||0,0,100000);
+            App.activity=ACTIVITIES.some(a=>a.id===cp.activity)?cp.activity:'study';
+            $('taskDesc').value=cp.task||'';
+            App.timer.running=true;
+            App.timer.interval=setInterval(tickTimer,250);
+            toast('Timer restored from its last checkpoint.');
+        } else {
+            // Timer finished while away
+            App.timer.phase=['focus','break','longBreak'].includes(cp.phase)?cp.phase:'focus';
+            App.timer.total=clamp(cp.total,1,10800);
+            App.timer.timeLeft=0;
+            App.timer.running=false;
+            toast('Previous timer completed while you were away.');
+        }
+    } else {
+        App.timer.phase=['focus','break','longBreak'].includes(cp.phase)?cp.phase:'focus';
+        App.timer.total=clamp(cp.total,1,10800);
+        App.timer.timeLeft=clamp(cp.timeLeft,0,App.timer.total);
+        App.timer.focusMinutes=clamp(cp.focusMinutes||25,1,180);
+        App.timer.focusCount=clamp(cp.focusCount||0,0,100000);
+    }
+}
 
 // NOTES
 $('notesArea').value=(()=>{try{return localStorage.getItem(STORAGE.notes)||localStorage.getItem('ekagrata_notes')||''}catch{return ''}})();
@@ -536,8 +577,22 @@ window.onYouTubeIframeAPIReady=()=>{ytApiReady=true;if(pendingVideoId)createYT(p
 function parseVideoId(input){const s=input.trim();if(/^[a-zA-Z0-9_-]{11}$/.test(s))return s;try{const u=new URL(s);if(!['youtube.com','www.youtube.com','m.youtube.com','youtu.be','www.youtube-nocookie.com','youtube-nocookie.com'].includes(u.hostname))return null;if(u.hostname.includes('youtu.be'))return u.pathname.split('/').filter(Boolean)[0]?.slice(0,11)||null;if(u.pathname==='/watch')return u.searchParams.get('v');const parts=u.pathname.split('/').filter(Boolean);const i=parts.findIndex(p=>['embed','shorts','live','v'].includes(p));return i>=0?parts[i+1]?.slice(0,11)||null:null}catch{return null}}
 function loadYT(){const id=parseVideoId($('ytUrlInput').value);if(!id||! /^[\w-]{11}$/.test(id)){toast('Enter a valid YouTube video URL or 11-character video ID.');return}$('ytPlayerContainer').style.display='block';$('ytStatus').textContent='Loading video…';pendingVideoId=id;if(ytApiReady)createYT(id);else if(window.YT&&window.YT.Player){ytApiReady=true;createYT(id)}else toast('YouTube player is still loading. Try Load again in a moment.')}
 function createYT(id){if(!window.YT||!YT.Player){$('ytStatus').textContent='YouTube player could not load. Check your connection or content blockers.';return}if(ytPlayer){ytPlayer.loadVideoById(id);return}try{ytPlayer=new YT.Player('ytPlayer',{width:'100%',height:'100%',videoId:id,playerVars:{playsinline:1,rel:0},events:{onReady:()=>{$('ytStatus').textContent='Video ready. Press play in the player.'},onStateChange:e=>{if(e.data===1){$('ytStatus').textContent='Lecture playing.';setDucking(true)}else{if(App.ducking)setDucking(false);$('ytStatus').textContent=e.data===0?'Lecture ended.':e.data===2?'Lecture paused.':'Player ready.'}},onError:()=>{$('ytStatus').textContent='Video unavailable or embedding is restricted. Try another video.';if(App.ducking)setDucking(false)}}})}catch{$('ytStatus').textContent='Could not initialize YouTube player.'}}
-function setDucking(enable){App.ducking=!!enable;$('duckToggleBtn').textContent='Ambient ducking: '+(App.settings.ducking?'On':'Off');if(App.audio.context)syncVolumes();if(enable&&App.settings.ducking&&App.audio.isPlaying)$('audioBadge').textContent='Lowered for lecture';else if(App.audio.isPlaying)$('audioBadge').textContent='Playing'}
-$('ytLoadBtn').addEventListener('click',loadYT);$('ytUrlInput').addEventListener('keydown',e=>{if(e.key==='Enter')loadYT()});$('duckToggleBtn').addEventListener('click',()=>{App.settings.ducking=!App.settings.ducking;persist(STORAGE.settings,App.settings);setDucking(App.ducking);toast('Ambient ducking '+(App.settings.ducking?'enabled':'disabled')+'.')});
+function setDucking(enable){
+    App.ducking=!!enable;
+    // [FIX] Ensure button text always matches the SETTING, not just the transient state
+    $('duckToggleBtn').textContent='Ambient ducking: '+(App.settings.ducking?'On':'Off');
+    if(App.audio.context)syncVolumes();
+    if(enable&&App.settings.ducking&&App.audio.isPlaying)$('audioBadge').textContent='Lowered for lecture';
+    else if(App.audio.isPlaying)$('audioBadge').textContent='Playing'
+}
+$('ytLoadBtn').addEventListener('click',loadYT);$('ytUrlInput').addEventListener('keydown',e=>{if(e.key==='Enter')loadYT()});
+$('duckToggleBtn').addEventListener('click',()=>{
+    App.settings.ducking=!App.settings.ducking;
+    persist(STORAGE.settings,App.settings);
+    // [FIX] Pass the NEW setting value explicitly to avoid desync
+    setDucking(App.ducking); 
+    toast('Ambient ducking '+(App.settings.ducking?'enabled':'disabled')+'.')
+});
 
 // SETTINGS & BACKUPS
 function openSettings(){fillSettings();$('settingsModal').classList.add('open');$('userName').focus()}
